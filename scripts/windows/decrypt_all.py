@@ -9,7 +9,18 @@ Pure pycryptodome (the VM has no `cryptography`). Usage: python decrypt_all.py [
 (raw key defaults to ../../key_windows.txt).
 """
 import sys, os, glob, hashlib
-from Crypto.Cipher import AES
+
+try:                                    # AES 后端: pycryptodome(Windows/VM) 优先, 退 cryptography(macOS)
+    from Crypto.Cipher import AES
+
+    def _aes_cbc_dec(key, iv, ct):
+        return AES.new(key, AES.MODE_CBC, iv).decrypt(ct)
+except ImportError:
+    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+
+    def _aes_cbc_dec(key, iv, ct):
+        d = Cipher(algorithms.AES(key), modes.CBC(iv)).decryptor()
+        return d.update(ct) + d.finalize()
 
 SKILL_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DECRYPTED_DIR = os.path.join(SKILL_DIR, "decrypted")
@@ -26,7 +37,7 @@ def decrypt_db(raw: bytes, src: str, dst: str) -> bool:
     rstart = PAGE - RESERVE
     # verify page 1 header before committing
     iv0 = data[rstart:rstart + 16]
-    pt0 = AES.new(enc, AES.MODE_CBC, iv0).decrypt(data[SALT_SZ:rstart])
+    pt0 = _aes_cbc_dec(enc, iv0, data[SALT_SZ:rstart])
     if not (pt0[0] == 0x10 and pt0[1] == 0x00 and pt0[4] == 0x50 and pt0[5] == 0x40 and pt0[7] == 0x20):
         return False
     out = bytearray(b"SQLite format 3\x00")
@@ -34,7 +45,7 @@ def decrypt_db(raw: bytes, src: str, dst: str) -> bool:
     for i in range(1, len(data) // PAGE):
         page = data[i * PAGE:(i + 1) * PAGE]
         iv = page[rstart:rstart + 16]
-        out += AES.new(enc, AES.MODE_CBC, iv).decrypt(page[:rstart]) + page[rstart:]
+        out += _aes_cbc_dec(enc, iv, page[:rstart]) + page[rstart:]
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     open(dst, "wb").write(out)
     return True
