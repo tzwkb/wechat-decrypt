@@ -49,7 +49,10 @@ WHISPER_MODEL_DIR = os.path.expanduser(
 
 
 def model_cached() -> bool:
-    """True if the whisper-large-v3-mlx model is already downloaded."""
+    """True if whisper is ready (mac: mlx model cached; else faster-whisper downloads on demand)."""
+    import platform
+    if platform.system() != "Darwin":
+        return True
     return os.path.isdir(WHISPER_MODEL_DIR)
 
 

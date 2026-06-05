@@ -133,8 +133,8 @@ def _find_decrypted_data_dir() -> str:
     )
     if not hits:
         raise FileNotFoundError(
-            f"未找到解密后的 message_0.db，先运行 scripts/windows/extract_key.ps1。"
-            f"查找根: {config.DECRYPTED_DIR}"
+            f"未找到解密后的 message_0.db，先运行 scripts/windows/extract_raw_key.py 提 key，"
+            f"再 scripts/windows/decrypt_all.py 解密。查找根: {config.DECRYPTED_DIR}"
         )
     hits.sort(key=os.path.getmtime, reverse=True)
     return os.path.dirname(os.path.dirname(hits[0]))

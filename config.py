@@ -19,7 +19,7 @@ if IS_MACOS:
     )
 elif IS_WINDOWS:
     DB_BACKEND = "sqlite3"
-    # wechat-dump-rs 解密产物根目录（明文库，保留原结构）
+    # decrypt_all.py 解密产物根目录（明文库，保留 {wxid}/db_storage 结构）
     DECRYPTED_DIR = os.path.join(SKILL_DIR, "decrypted")
     # 原始加密库（仅供提 key/解密时定位源）
     WECHAT_DATA_GLOB = os.path.expanduser(
