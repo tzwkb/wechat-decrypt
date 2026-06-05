@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+key.txt*
+contacts.json
+.env
+*.db
+.DS_Store
+all_keys.json
+__handlers__/
+askpass.sh
+key_windows.txt

@@ -1,0 +1,16 @@
+[project]
+name = "wechat-mcp-server"
+version = "0.1.0"
+description = "MCP server for reading and analyzing WeChat chat history on macOS"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp[cli]>=1.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+pythonpath = [".", "scripts/common"]
+testpaths = ["tests"]
