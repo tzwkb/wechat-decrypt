@@ -60,6 +60,7 @@ check_sync(SK_WC, LG_WC, "wecom skills↔langlobal")
 # B. wechat ↔ wecom vendored (跨项目共享文件)
 check_vendored(f"{SK_WX}/scripts/common/read_doc.py", f"{SK_WC}/decrypt/read_doc.py", "read_doc.py")
 check_vendored(f"{SK_WX}/scripts/common/crypto_backend.py", f"{SK_WC}/decrypt/crypto_backend.py", "crypto_backend.py")
+check_vendored(f"{SK_WX}/test/check_consistency.py", f"{SK_WC}/decrypt/test/check_consistency.py", "check_consistency.py")
 
 if drift:
     print(f"⚠️ 架构漂移 {len(drift)} 处:")
