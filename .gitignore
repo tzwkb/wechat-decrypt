@@ -15,3 +15,4 @@ decrypted/
 wechat_media/
 .pytest_cache/
 *_keys.json
+scripts/windows/legacy/
