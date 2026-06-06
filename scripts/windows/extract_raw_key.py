@@ -17,6 +17,7 @@ import frida, sys, time, hashlib, glob, subprocess
 from Crypto.Cipher import AES
 
 secs = int(sys.argv[1]) if len(sys.argv) > 1 else 90
+sys.stdout.reconfigure(line_buffering=True)  # 远程/CI 实时见进度(建议5: 避免块缓冲憋到退出)
 
 # --- verification target: any message db's page1 (raw key is account-wide; salt is per-db) ---
 dbs = glob.glob(r"C:\Users\*\Documents\xwechat_files\*\db_storage\message\message_0.db")
@@ -63,6 +64,10 @@ def main_pid():
 
 # --- race-attach: kill WeChat, wait for the USER to restart it, attach the instant it loads (pre-db) ---
 subprocess.run(["taskkill", "/F", "/IM", "Weixin.exe"], capture_output=True)
+for _ in range(100):  # 等旧进程全退出再 race, 否则会抢到正被杀的僵尸进程→ACCESS_DENIED 崩(建议3)
+    if main_pid() is None:
+        break
+    time.sleep(0.1)
 print(">>> Now RESTART WeChat from the desktop (double-click). Race-attaching... <<<")
 dev = frida.get_local_device()
 pid = None

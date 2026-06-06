@@ -20,7 +20,13 @@ test -f ~/.claude/skills/wechat-decrypt/key.txt && echo "KEY_OK" || echo "KEY_MI
 | `KEY_MISSING` | 执行「密钥提取」对应平台流程（Windows 提 key 后还需 `python scripts\windows\decrypt_all.py` 解密全库到明文） |
 | 全部 OK | 直接使用 MCP 工具 |
 
-> Windows 自检用 `where python` + `test key_windows.txt` + 检查 `decrypted\` 是否有明文库；缺明文库即跑 `decrypt_all.py`。
+> **Windows 自检**（PowerShell，对齐上面 macOS 三项）:
+> ```powershell
+> python -c "import frida, Crypto; print('DEPS_OK')"   # 缺 → pip install frida pycryptodome
+> Test-Path "$env:USERPROFILE\.claude\skills\wechat-decrypt\key_windows.txt"   # 缺 → extract_raw_key.py 提 key
+> Test-Path "$env:USERPROFILE\.claude\skills\wechat-decrypt\decrypted"         # 缺 → decrypt_all.py 解密全库
+> ```
+> 缺哪项跑对应步骤:deps→`setup.ps1`、key→`extract_raw_key.py`、明文库→`decrypt_all.py`。
 
 不要跳过自检。
 
