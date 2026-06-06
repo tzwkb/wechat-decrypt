@@ -10,9 +10,9 @@
 
 ## 跑法
 ```bash
-python3 test/test_e2e.py            # 端到端 12 项(轻量)
-python3 test/test_e2e.py --full     # + media/export(慢)
-python3 test/check_consistency.py   # 一致性校验
+python3 e2e/test_e2e.py            # 端到端 12 项(轻量)
+python3 e2e/test_e2e.py --full     # + media/export(慢)
+python3 e2e/check_consistency.py   # 一致性校验
 ```
 退出码 0=全过 / 1=有失败,可接 CI。
 
