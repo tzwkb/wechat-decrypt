@@ -67,18 +67,16 @@ test -d ~/.cache/huggingface/hub/models--mlx-community--whisper-large-v3-mlx && 
 
 语音消息（`local_type=34`）的音频以 SILK v3 存在 `media_0.db` 的 `VoiceInfo.voice_data`，按 `svr_id == server_id` 对齐。链路：VoiceInfo 直取 → `pilk` 解码 SILK→wav → whisper large-v3 转写 → 按 server_id 回填。全自动、批量、纯离线，无需 BlackHole/播放/重启。**默认行为：模型已缓存即自动转写；`--transcribe` 强制（含首次下载 ~3GB 模型，缓存 `~/.cache/huggingface/`）；`--no-transcribe` 关闭。** **后端按平台自动切**：macOS = `mlx-whisper`（Apple Silicon），Windows = `faster-whisper`（CPU int8，按需下载）；旧 BlackHole+Swift 方案在 langlobal 开发仓。
 
-## MCP 不可用时的降级方案
+## 命令行 entry（逻辑核心；MCP 是可选薄门面）
 
-依赖已装在全局 python（`/opt/homebrew/bin/python3`），直接用即可，无需 venv。
+逻辑核心在 `scripts/common/query.py`（命令行），`server.py` 的 MCP 工具只是转发到它。**agent 调用推荐加 `--json` 拿结构化输出**（解析可靠，不受文字排版影响）；人调试时不加、看文字。
 
 ```bash
 SKILL_DIR=~/.claude/skills/wechat-decrypt
-cd "$SKILL_DIR"
-/opt/homebrew/bin/python3 -c "
-import sys; sys.path.insert(0, '.')
-from server import _get_message_dbs, _get_name2id, _query, _resolve_contact_name, _format_time, _is_my_message
-# query logic here
-"
+python3 "$SKILL_DIR/scripts/common/query.py" list
+python3 "$SKILL_DIR/scripts/common/query.py" recent -d 3 --json      # agent 用 --json
+python3 "$SKILL_DIR/scripts/common/query.py" search 关键词 --json
+# 子命令: list / read <contact> / search <kw> / recent / summary / stats / media / openfile
 ```
 
 ## 密钥体系（两端通用）

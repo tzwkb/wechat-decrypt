@@ -10,17 +10,8 @@ Pure pycryptodome (the VM has no `cryptography`). Usage: python decrypt_all.py [
 """
 import sys, os, glob, hashlib
 
-try:                                    # AES 后端: pycryptodome(Windows/VM) 优先, 退 cryptography(macOS)
-    from Crypto.Cipher import AES
-
-    def _aes_cbc_dec(key, iv, ct):
-        return AES.new(key, AES.MODE_CBC, iv).decrypt(ct)
-except ImportError:
-    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-
-    def _aes_cbc_dec(key, iv, ct):
-        d = Cipher(algorithms.AES(key), modes.CBC(iv)).decryptor()
-        return d.update(ct) + d.finalize()
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "common"))
+from crypto_backend import aes_cbc_decrypt as _aes_cbc_dec
 
 SKILL_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DECRYPTED_DIR = os.path.join(SKILL_DIR, "decrypted")

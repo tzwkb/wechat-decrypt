@@ -11,3 +11,7 @@ all_keys.json
 __handlers__/
 askpass.sh
 key_windows.txt
+decrypted/
+wechat_media/
+.pytest_cache/
+*_keys.json
