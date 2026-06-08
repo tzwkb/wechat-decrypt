@@ -112,8 +112,7 @@ def summary(days: int = 3) -> dict:
                 db_path,
                 f"SELECT create_time, local_type, real_sender_id, message_content FROM {table} "
                 f"WHERE create_time > {since} AND local_type = '1' ORDER BY create_time DESC LIMIT 30;")
-            text = [_fmt_msg(r) for r in rows
-                    if r.get("message_content") and not r["message_content"].startswith("<")]
+            text = [m for m in (_fmt_msg(r) for r in rows) if m["is_text"]]
             if text:
                 convs.append({"display": contacts.resolve_contact_name(name2id.get(table, table)),
                               "messages": sorted(text, key=lambda x: x["_ts"])[-20:]})
@@ -159,10 +158,42 @@ def openfile(name: str, limit: int = 8000) -> dict:
     return {"path": matches[0], "matches": len(matches), "content": read_doc.read_file(matches[0], limit)}
 
 
+def _zstd_decompress(data: bytes) -> bytes:
+    try:
+        import zstd
+        return zstd.decompress(data)
+    except Exception:
+        pass
+    try:
+        import zstandard
+        return zstandard.ZstdDecompressor().decompress(data)
+    except Exception:
+        pass
+    import pyzstd
+    return pyzstd.decompress(data)
+
+
+def _decode_content(mc) -> str:
+    # message_content 可能是明文 str, 或 zstd 压缩 bytes (WeChat 4.x 长消息, 魔数 28 b5 2f fd)
+    if mc is None:
+        return ""
+    if isinstance(mc, str):
+        return mc
+    if isinstance(mc, (bytes, bytearray)):
+        b = bytes(mc)
+        if b[:4] == b"\x28\xb5\x2f\xfd":
+            try:
+                b = _zstd_decompress(b)
+            except Exception:
+                return ""
+        return b.decode("utf-8", "ignore")
+    return str(mc)
+
+
 def _fmt_msg(row: dict) -> dict:
     ts = row.get("create_time", "0")
     type_key = message.normalize_type(row.get("local_type", ""))
-    content = row.get("message_content", "") or ""
+    content = _decode_content(row.get("message_content"))
     is_me = message.is_my_message(row.get("real_sender_id", ""))
     is_text = type_key == "1" and not content.startswith("<")
     return {

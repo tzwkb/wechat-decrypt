@@ -25,4 +25,4 @@ python3 e2e/check_consistency.py   # 一致性校验
 ```
 改代码 → check_consistency.py(查漂移) → test_e2e.py(查功能) → 都绿才 commit
 ```
-跨项目总指南见 `Langlobal/TESTING.md`;架构目标骨架见 `Langlobal/decrypt-modules-alignment.md`。
+跨项目总指南见 `Langlobal/decrypt-shared/TESTING.md`;架构目标骨架见 `Langlobal/decrypt-shared/decrypt-modules-alignment.md`。
