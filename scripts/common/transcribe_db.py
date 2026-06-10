@@ -23,6 +23,24 @@ IS_MACOS = platform.system() == "Darwin"
 DEFAULT_MODEL = "mlx-community/whisper-large-v3-mlx" if IS_MACOS else "large-v3"
 _fw_model = None
 
+VOICE_CACHE = os.path.join(SKILL_DIR, "voice_cache.json")
+
+
+def _load_voice_cache() -> dict[str, str]:
+    try:
+        with open(VOICE_CACHE, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {}
+
+
+def _save_voice_cache(cache: dict[str, str]) -> None:
+    try:
+        with open(VOICE_CACHE, "w", encoding="utf-8") as f:
+            json.dump(cache, f, ensure_ascii=False, indent=1)
+    except OSError:
+        pass
+
 
 def _transcribe_wav(wav: str, lang: str = "zh", model: str = DEFAULT_MODEL) -> str:
     """Transcribe one wav with the platform's whisper backend."""
@@ -53,11 +71,22 @@ def _fetch_blobs(server_ids: list[str]) -> dict[str, bytes]:
     return out
 
 
-def transcribe_server_ids(server_ids: list[str], model: str = DEFAULT_MODEL) -> dict[str, str]:
-    blobs = _fetch_blobs(server_ids)
-    if not blobs:
+def transcribe_server_ids(server_ids: list[str], model: str = DEFAULT_MODEL,
+                          use_cache: bool = True) -> dict[str, str]:
+    sids = [str(s) for s in server_ids if s and str(s) != "0"]
+    if not sids:
         return {}
-    result: dict[str, str] = {}
+    cache = _load_voice_cache() if use_cache else {}
+    result = {s: cache[s] for s in sids if s in cache}
+    missing = [s for s in sids if s not in result]
+    if result:
+        print(f"转写缓存命中 {len(result)} 条", file=sys.stderr)
+    if not missing:
+        return result
+    blobs = _fetch_blobs(missing)
+    if not blobs:
+        return result
+    new: dict[str, str] = {}
     total = len(blobs)
     print(f"转写 {total} 条语音（模型 {model}）...", file=sys.stderr)
     with tempfile.TemporaryDirectory() as td:
@@ -67,10 +96,14 @@ def transcribe_server_ids(server_ids: list[str], model: str = DEFAULT_MODEL) -> 
                 voice_decode.decode_voice_blob(blob, wav)
                 text = _transcribe_wav(wav, lang="zh", model=model)
                 if text:
-                    result[sid] = text
+                    new[sid] = text
                 print(f"  [{i}/{total}] {text[:40]}", file=sys.stderr)
             except Exception as e:
                 print(f"  [{i}/{total}] svr_id={sid} 失败: {e}", file=sys.stderr)
+    if use_cache and new:
+        cache.update(new)
+        _save_voice_cache(cache)
+    result.update(new)
     return result
 
 

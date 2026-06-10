@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""导出微信聊天记录，自动按月分片。
+"""导出微信聊天记录。
 
 Usage:
+    python3 export_chat.py <contact>                              # 全部历史
     python3 export_chat.py <contact> --year 2026 [-o ~/Desktop/out.txt]
     python3 export_chat.py <contact> --start 2026-01-01 --end 2026-06-03
 """
@@ -69,18 +70,6 @@ _REFER_TYPE_LABELS = {
 }
 
 
-def chunk_by_month(start_dt, end_dt):
-    chunks = []
-    cur = start_dt
-    while cur < end_dt:
-        nxt = cur.replace(year=cur.year + 1, month=1, day=1) if cur.month == 12 \
-              else cur.replace(month=cur.month + 1, day=1)
-        end_chunk = min(nxt, end_dt)
-        chunks.append((cur, end_chunk))
-        cur = end_chunk
-    return chunks
-
-
 def _get_my_rowid(db_path: str) -> int | None:
     """Return my Name2Id rowid for this specific DB, or None if not found."""
     my_wxid = db.get_my_wxid()
@@ -97,9 +86,12 @@ def fetch(table, db_paths, since_dt, until_dt):
     since = int(since_dt.timestamp())
     until = int(until_dt.timestamp())
     rows = []
-    for db_path in db_paths:
+    n = len(db_paths)
+    for i, db_path in enumerate(db_paths, 1):
+        tag = os.path.basename(db_path)
         tables = db.query_raw(db_path, "SELECT name FROM sqlite_master WHERE type='table';")
         if table not in {t.strip() for t in tables}:
+            print(f"[{i}/{n}] {tag}: 无此会话", file=sys.stderr)
             continue
         my_rowid = _get_my_rowid(db_path)
         is_me_expr = f"CASE WHEN m.real_sender_id={my_rowid} THEN '1' ELSE '0' END" \
@@ -120,6 +112,7 @@ def fetch(table, db_paths, since_dt, until_dt):
         for r in batch:
             r["_db"] = db_path
         rows.extend(batch)
+        print(f"[{i}/{n}] {tag}: {len(batch)} 条", file=sys.stderr)
     return rows
 
 
@@ -246,8 +239,8 @@ def main():
     parser = argparse.ArgumentParser(description="导出微信聊天记录")
     parser.add_argument("contact", help="联系人名称/备注/wxid")
     parser.add_argument("--year", type=int, help="导出整年")
-    parser.add_argument("--start", help="开始日期 YYYY-MM-DD")
-    parser.add_argument("--end", help="结束日期 YYYY-MM-DD")
+    parser.add_argument("--start", help="开始日期 YYYY-MM-DD（默认不限）")
+    parser.add_argument("--end", help="结束日期 YYYY-MM-DD，含当天（默认今天）")
     parser.add_argument("-o", "--output", help="输出路径，默认 ~/Desktop/<contact>_<range>.txt")
     parser.add_argument("--transcribe", action="store_true", help="强制转写语音（即使模型未安装也尝试，触发首次下载）")
     parser.add_argument("--no-transcribe", action="store_true", help="禁用语音转写（即使模型已安装也保留 [Audio]）")
@@ -267,12 +260,11 @@ def main():
     if args.year:
         start_dt = datetime(args.year, 1, 1)
         end_dt = datetime(args.year + 1, 1, 1)
-    elif args.start and args.end:
-        start_dt = datetime.strptime(args.start, "%Y-%m-%d")
-        end_dt = datetime.strptime(args.end, "%Y-%m-%d") + timedelta(days=1)
     else:
-        print("请指定 --year 或 --start/--end", file=sys.stderr)
-        sys.exit(1)
+        start_dt = datetime.strptime(args.start, "%Y-%m-%d") if args.start \
+                   else datetime(2010, 1, 1)
+        end_dt = (datetime.strptime(args.end, "%Y-%m-%d") if args.end
+                  else datetime.now()) + timedelta(days=1)
 
     name2id = db.get_name2id()
     matched = contacts.find_contact(args.contact, name2id)
@@ -292,13 +284,7 @@ def main():
     my_name = contacts.resolve_nickname(db.get_my_wxid())
     peer_name = contacts.resolve_nickname(wxid) if not is_group else "对方"
 
-    chunks = chunk_by_month(start_dt, end_dt)
-    all_rows = []
-    for i, (cs, ce) in enumerate(chunks):
-        print(f"[{i+1}/{len(chunks)}] {cs.strftime('%Y-%m')} ...", file=sys.stderr)
-        batch = fetch(table, db_paths, cs, ce)
-        all_rows.extend(batch)
-        print(f"  -> {len(batch)} 条", file=sys.stderr)
+    all_rows = fetch(table, db_paths, start_dt, end_dt)
 
     seen = set()
     deduped = []
@@ -336,7 +322,12 @@ def main():
         out = os.path.expanduser(args.output)
     else:
         slug = args.contact.replace("/", "_").replace(" ", "_")
-        label = str(args.year) if args.year else f"{args.start}_{args.end}"
+        if args.year:
+            label = str(args.year)
+        elif args.start or args.end:
+            label = f"{args.start or 'begin'}_{args.end or 'now'}"
+        else:
+            label = "all"
         out = os.path.expanduser(f"~/Desktop/{slug}_{label}.txt")
 
     with open(out, "w", encoding="utf-8") as f:

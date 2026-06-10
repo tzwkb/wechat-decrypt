@@ -106,10 +106,17 @@ def get_my_wxid() -> str:
     return _re.sub(r'_[^_]+$', '', account)
 
 
+_data_dir_cache: str | None = None
+
+
 def find_data_dir() -> str:
-    """Find the WeChat db_storage directory (most recent with valid key)."""
+    """Find the WeChat db_storage directory (most recent with valid key). Cached per process."""
+    global _data_dir_cache
+    if _data_dir_cache:
+        return _data_dir_cache
     if config.DB_BACKEND == "sqlite3":
-        return _find_decrypted_data_dir()
+        _data_dir_cache = _find_decrypted_data_dir()
+        return _data_dir_cache
     matches = sorted(glob.glob(config.WECHAT_DATA_GLOB), key=os.path.getmtime, reverse=True)
     if not matches:
         raise FileNotFoundError(f"未找到 WeChat 数据目录: {config.WECHAT_DATA_GLOB}")
@@ -117,8 +124,10 @@ def find_data_dir() -> str:
     for match in matches:
         msg_db = os.path.join(match, "message", "message_0.db")
         if os.path.exists(msg_db) and test_key(key, msg_db):
+            _data_dir_cache = match
             return match
-    return matches[0]
+    _data_dir_cache = matches[0]
+    return _data_dir_cache
 
 
 def _find_decrypted_data_dir() -> str:
@@ -140,15 +149,23 @@ def _find_decrypted_data_dir() -> str:
     return os.path.dirname(os.path.dirname(hits[0]))
 
 
+_message_dbs_cache: list[str] | None = None
+
+
 def get_message_dbs() -> list[str]:
-    """Get paths to all message database files that our key can access."""
+    """Get paths to all message database files that our key can access. Cached per process."""
+    global _message_dbs_cache
+    if _message_dbs_cache is not None:
+        return _message_dbs_cache
     data_dir = find_data_dir()
     pattern = os.path.join(data_dir, "message", "message_[0-9].db")
     dbs = sorted(glob.glob(pattern))
     if config.DB_BACKEND == "sqlite3":
-        return [db for db in dbs if test_key("", db)]
-    key = crypto.load_key()
-    return [db for db in dbs if test_key(key, db)]
+        _message_dbs_cache = [db for db in dbs if test_key("", db)]
+    else:
+        key = crypto.load_key()
+        _message_dbs_cache = [db for db in dbs if test_key(key, db)]
+    return _message_dbs_cache
 
 
 def get_name2id() -> dict[str, str]:

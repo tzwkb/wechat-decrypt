@@ -15,4 +15,4 @@ decrypted/
 wechat_media/
 .pytest_cache/
 *_keys.json
-scripts/legacy/
+voice_cache.json

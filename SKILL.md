@@ -38,8 +38,8 @@ test -f ~/.claude/skills/wechat-decrypt/key.txt && echo "KEY_OK" || echo "KEY_MI
 | "搜XX的聊天" "和XX提到" | MCP: `wechat_search_messages` |
 | "列出会话" "有哪些群" | MCP: `wechat_list_chats` |
 | "读和XX的聊天" | MCP: `wechat_read_chat` |
-| "导出和XX的聊天" "导出XX到桌面" | 先做①模型检查（见下），再 `python3 scripts/common/export_chat.py <contact> --year YYYY [-o path]`（模型在则默认转写，`--no-transcribe` 可关） |
-| "转写XX的语音" "语音转文字" "把语音导成文字" | `python3 scripts/common/export_chat.py <contact> --year YYYY --transcribe`，或单独 `python3 scripts/common/transcribe_db.py <contact> -o map.json` |
+| "导出和XX的聊天" "导出XX到桌面" | 先做①模型检查（见下），再 `python3 scripts/common/export_chat.py <contact> [--start/--end/--year] [-o path]`（不传日期=全部历史；模型在则默认转写，`--no-transcribe` 可关；语音转写结果持久缓存 voice_cache.json，二次导出秒回） |
+| "转写XX的语音" "语音转文字" "把语音导成文字" | `python3 scripts/common/export_chat.py <contact> --transcribe`，或单独 `python3 scripts/common/transcribe_db.py <contact> -o map.json` |
 | "微信更新了" "重新破解" "密钥失效" | 执行下方「密钥提取」对应平台流程 |
 
 ### ① 导出前置——语音转写模型检查（默认执行）
@@ -151,7 +151,7 @@ python3 "$SKILL_DIR/scripts/common/query.py" search 关键词 --json
 **macOS:** `bash setup.sh`
 **Windows:** `powershell -File setup.ps1`
 
-`key.txt`、`contacts.json`、`all_keys.json` 是个人数据，分发前删除（已 `.gitignore`）。
+`key.txt`、`contacts.json`、`all_keys.json`、`voice_cache.json` 是个人数据，分发前删除（已 `.gitignore`）。
 
 ## 文件清单
 
