@@ -169,17 +169,23 @@ def get_message_dbs() -> list[str]:
 
 
 def get_name2id() -> dict[str, str]:
-    """Build mapping from Msg_ table name to username/wxid."""
-    dbs = get_message_dbs()
-    if not dbs:
-        return {}
-    rows = query(dbs[0], "SELECT user_name FROM Name2Id;")
+    """Build mapping from Msg_ table name to username/wxid.
+
+    Merge Name2Id across ALL message DBs: after a WCDB factory rebuild the newest
+    active shard (e.g. message_5) holds sessions absent from message_0/1, so reading
+    only the first DB would miss them. Mapping is table->user_name (md5 of wxid),
+    rowid-independent, so cross-DB merge is safe.
+    """
     mapping = {}
-    for row in rows:
-        un = row.get("user_name", "")
-        if un:
-            h = hashlib.md5(un.encode()).hexdigest()
-            mapping[f"Msg_{h}"] = un
+    for dbp in get_message_dbs():
+        try:
+            rows = query(dbp, "SELECT user_name FROM Name2Id;")
+        except Exception:
+            continue
+        for row in rows:
+            un = row.get("user_name", "")
+            if un:
+                mapping[f"Msg_{hashlib.md5(un.encode()).hexdigest()}"] = un
     return mapping
 
 
