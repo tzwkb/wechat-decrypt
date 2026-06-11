@@ -1,5 +1,6 @@
 """Database discovery, query execution, and Name2Id mapping."""
 import csv
+import sys
 import glob
 import hashlib
 import io
@@ -9,6 +10,8 @@ import subprocess
 
 import config
 import crypto
+
+csv.field_size_limit(sys.maxsize)
 
 
 def _exec_sqlite3(db_path: str, sql: str) -> list[sqlite3.Row]:
