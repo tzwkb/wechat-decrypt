@@ -4,7 +4,7 @@
 环境：Apple Silicon Mac + UTM Windows VM（**ARM 模拟 x64**，xtajit64se.dll 翻译执行）
 目标：在 Windows 微信 4.0 上实现 提 raw key → 解密 db → 读取消息 的完整链路
 最终结果：**message_0.db 解出 99 会话 / 27 个 Msg 表 / 1384 条消息，端到端跑通**
-最终 raw key：`***REMOVED-RAW-KEY***`
+最终 raw key：`&lt;REDACTED-RAW-KEY-64hex&gt;`
 
 ---
 
@@ -118,8 +118,8 @@ key 是 32 字节时，就是 `(key XOR 0x36)[32] || 0x36×96`。**这个 block 
 - 用户**重启微信**。微信启动时开所有 db、跑启动 PBKDF2，race 赶上了：
 ```
 attached pid: 10160
-*** RAW KEY CONFIRMED: ***REMOVED-RAW-KEY***
-*** K1 CONFIRMED:      ***REMOVED-K1***
+*** RAW KEY CONFIRMED: &lt;REDACTED-RAW-KEY-64hex&gt;
+*** K1 CONFIRMED:      &lt;REDACTED-K1-64hex&gt;
 ```
 - raw key 当场被 `PBKDF2(raw,salt,256000)→AES page1` 验证通过（出 SQLite 头）；K1 是 message_0 的派生 key，直接 AES 验证通过。
 
