@@ -1,6 +1,6 @@
 # wechat-decrypt
 
-[中文](README_ZH.md) | English
+English | [中文](README_ZH.md)
 
 
 ## Overview
@@ -27,34 +27,34 @@
 
 ## Command and Configuration Reference
 
-The following code blocks are preserved from the primary README. Commands, paths, and configuration keys are not translated; adjust them for the actual environment.
+The following code blocks keep commands, paths, filenames, and configuration keys literal; explanatory comments are translated for the English README.
 
 ```
-微信 → WCDB 加密层
+WeChat → WCDB encryption layer
          │
          ├── macOS:  CCKeyDerivationPBKDF → Frida hook → raw key
          │
-         └── Windows: SQLCipher (静态链接) → wechat-dump-rs → raw key
+         └── Windows: SQLCipher (statically linked) → wechat-dump-rs → raw key
                                                                     │
                                               PBKDF2(raw_key, salt, 256000)
                                                                     │
-                                              sqlcipher (kdf_iter=1) ─┬─ MCP Server（浏览/搜索）
+                                              sqlcipher (kdf_iter=1) ─┬─ MCP Server (browse/search)
                                                                       │
-                                                                      └─ export_chat.py（导出+语音转写）
+                                                                      └─ export_chat.py (export + voice transcription)
 ```
 
 ```bash
-bash setup.sh               # macOS 一键安装
-# 或
+bash setup.sh               # one-click macOS install
+# or
 powershell -File setup.ps1  # Windows
 
-# 提取密钥 → 写入 key.txt → 重启 Claude Code
+# extract key → write key.txt → restart Claude Code
 ```
 
 ```bash
 python3 scripts/common/export_chat.py 张三 --year 2026 -o ~/Desktop/out.txt
 python3 scripts/common/export_chat.py 张三 --start 2026-01-01 --end 2026-06-03
-python3 scripts/common/export_chat.py 张三 --year 2026 --transcribe   # 语音转文字
+python3 scripts/common/export_chat.py 张三 --year 2026 --transcribe   # transcribe voice messages
 ```
 
 ## Detailed Technical Notes
