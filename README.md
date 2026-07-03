@@ -20,10 +20,6 @@ English | [中文](README_ZH.md)
 
  Follow the platform-specific README/SKILL.md flow to extract keys, decrypt databases, and start query tools.
 
-## Status
-
- This repository is maintained or used according to the current README notes.
-
 ## Notes
 
  Use only for local data the user is authorized to access.
@@ -59,7 +55,3 @@ python3 scripts/common/export_chat.py 张三 --year 2026 -o ~/Desktop/out.txt
 python3 scripts/common/export_chat.py 张三 --start 2026-01-01 --end 2026-06-03
 python3 scripts/common/export_chat.py 张三 --year 2026 --transcribe   # transcribe voice messages
 ```
-
-## Detailed Technical Notes
-
-This README keeps the English version of the core documentation. Code blocks, paths, commands, and file-layout examples are kept literal so they can be copied and checked against the repository.
