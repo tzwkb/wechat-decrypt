@@ -1,6 +1,6 @@
 # wechat-decrypt
 
-中文 | [English](README.md)
+[English](README.md) | 中文
 
 
 **Agent Skill** — WeChat 4.x 聊天记录解密、查询、导出和语音转写工具，支持 macOS/Windows 已验证流程与 MCP 查询接口。
