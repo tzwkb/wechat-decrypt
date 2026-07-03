@@ -1,11 +1,13 @@
 # wechat-decrypt
 
-[English](README.md) | 中文
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Agent Skill](https://img.shields.io/badge/Agent%20Skill-Codex-blue.svg)](SKILL.md)
+[![Python](https://img.shields.io/badge/Python-3.x-blue.svg)](https://www.python.org/)
 
+[English](README.md) | 中文
 
 **Agent Skill** — WeChat 4.x 聊天记录解密、查询、导出和语音转写工具，支持 macOS/Windows 已验证流程与 MCP 查询接口。
 
-**Agent Skill** — WeChat 4.x chat decrypt, query, export, and voice transcription toolkit for verified macOS/Windows workflows with MCP access.
 
 作为 Agent Skill 分发：拷贝整个目录到对应 agent 的 skills 目录，Agent 通过 [SKILL.md](SKILL.md) 自动加载触发规则，并以 MCP Server 形式暴露查询工具。也可脱离 Agent 单独运行导出脚本。
 
