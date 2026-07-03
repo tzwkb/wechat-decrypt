@@ -1,43 +1,7 @@
 # wechat-decrypt
 
-<!-- bilingual-readme:start -->
+中文 | [English](README_EN.md)
 
-## 双语说明 / Bilingual Documentation
-
-> 本节提供整篇 README 的中英双语维护说明；下方保留原始详细说明、命令、路径和配置示例。
-> This section provides bilingual maintenance notes for the full README; the original detailed notes, commands, paths, and configuration examples are preserved below.
-
-### 中文
-
-**概览**：WeChat 4.x 聊天记录解密、查询、导出和语音转写 Agent Skill，支持 macOS/Windows 已验证流程与 MCP 查询接口。
-
-**主要能力**：
-- 解密本地 WeChat 数据库。
-- 提供聊天、联系人、全文搜索和导出能力。
-- 可通过 MCP 暴露查询工具。
-
-**使用方式**：按 README/SKILL.md 中对应平台流程提取 key、解密数据库并启动查询工具。
-
-**状态**：该仓库仍按当前 README 的说明维护或使用。
-
-**注意事项**：仅处理用户授权访问的本地数据。
-
-### English
-
-**Overview**: WeChat 4.x chat decrypt, query, export, and voice transcription Agent Skill for verified macOS/Windows workflows with MCP access.
-
-**Key capabilities**:
-- Decrypts local WeChat databases.
-- Provides chat, contact, full-text search, and export capabilities.
-- Can expose query tools through MCP.
-
-**Usage**: Follow the platform-specific README/SKILL.md flow to extract keys, decrypt databases, and start query tools.
-
-**Status**: This repository is maintained or used according to the current README notes.
-
-**Notes**: Use only for local data the user is authorized to access.
-
-<!-- bilingual-readme:end -->
 
 **Agent Skill** — WeChat 4.x 聊天记录解密、查询、导出和语音转写工具，支持 macOS/Windows 已验证流程与 MCP 查询接口。
 
