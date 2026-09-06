@@ -71,11 +71,12 @@ function installHooks(m) {
   send("SHA-512 K-tables found: " + Object.keys(tables).length);
 
   // Mask REX.R and ModRM.reg to cover all 16 RIP-relative LEA encodings in one pass.
-  var leas = scanRanges(m, "r-x", "48 8d 05 00 00 00 00 : fb ff c7 00 00 00 00");
+  var leas = scanRanges(m, "r-x", "48 8d 05 : fb ff c7");
   var entries = Object.create(null);
   var matchingXrefs = 0;
   leas.forEach(function(hit) {
     try {
+      if (hit.address.add(7).compare(hit.range.base.add(hit.range.size)) > 0) return;
       var target = hit.address.add(7).add(hit.address.add(3).readS32());
       if (!tables[target.toString()]) return;
       matchingXrefs++;

@@ -98,6 +98,17 @@ def test_failed_hook_does_not_prevent_another_entry_capturing_key():
     assert any(message.startswith("WARN: hook failed") for message in report["messages"])
 
 
+def test_truncated_lea_at_executable_range_boundary_is_ignored():
+    memory = module_memory([0x3000], [
+        (0x100, [(0x120, 0x3000, 0)]), (0xFC0, [(0xFFD, 0x3000, 0)]),
+    ])
+    report = run_js(memory, ranges=[
+        {"offset": 0, "size": 0x1000, "protection": "r-x"},
+        {"offset": 0x1000, "size": 0x3000, "protection": "r--"},
+    ])
+    assert report["entries"] == [0x100]
+
+
 def test_failed_scan_does_not_hide_other_ranges():
     memory = module_memory([0x3000], [(0x1100, [(0x1120, 0x3000, 0)])])
     report = run_js(memory, fail_scans=[0], ranges=[
@@ -284,7 +295,7 @@ secondEntry(ptr(0), block);
         script.on("message", on_message)
         script.load()
         assert completed.wait(10), "Frida did not capture the synthetic key"
-        assert not [message for message in messages if message.get("type") == "error"], messages
+        assert not [message for message in messages if message.get("type") == "error"], json.dumps(messages, indent=2)
         payloads = [message.get("payload", "") for message in messages]
         assert payloads.count("KEY:" + KEY.hex()) == 1
         assert sum(str(payload).startswith("sha512 entry @") for payload in payloads) == 2

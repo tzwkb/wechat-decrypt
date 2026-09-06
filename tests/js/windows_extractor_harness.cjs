@@ -44,6 +44,9 @@ function scanSync(address, size, pattern) {
   const needle = tokens.map(token => parseInt(token.replace(/\?/g, '0'), 16));
   const mask = maskText ? maskText.trim().split(/\s+/).map(token => parseInt(token, 16))
     : tokens.map(token => parseInt(token.replace(/[0-9a-f]/gi, 'f').replace(/\?/g, '0'), 16));
+  if (!mask.length || mask[0] === 0 || mask[mask.length - 1] === 0) {
+    throw new Error('invalid match pattern: Frida 17.x rejects leading/trailing wildcard bytes');
+  }
   const bytes = address.bytes(size), hits = [];
   for (let i = 0; i <= bytes.length - needle.length; i++) {
     if (needle.every((byte, j) => (bytes[i + j] & mask[j]) === (byte & mask[j]))) {
