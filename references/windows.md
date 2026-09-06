@@ -43,8 +43,8 @@ After extraction:
 ## Troubleshooting
 
 - `message_0.db not found`: sign in to WeChat and confirm `Documents\xwechat_files\...\db_storage\message\message_0.db` exists.
-- No raw key before timeout: confirm WeChat was manually restarted from the visible desktop after the extractor prompt.
+- No raw key before timeout: check the reported K-table count and hooked entry RVAs, then confirm WeChat was manually restarted from the visible desktop after the extractor prompt. Share the WeChat version and status/error lines when reporting a failure; never share keys or database files.
 - Decryption yields zero databases: the key is wrong for this device, WeChat changed its format, or the selected account directory is not the active one.
 - After a WeChat update: rerun `doctor.py`; repeat extraction only if the current key no longer works.
 
-The extractor locates the SHA-512 implementation dynamically and captures the PBKDF2 HMAC ipad key material at startup. The raw key remains device-specific even for the same WeChat account.
+The extractor scans all SHA-512 K-tables and hooks every distinct resolved entry. Some builds, including the reported WeChat 4.1.12.55 layout, use a different implementation for PBKDF2 than the first table's implementation. Process detection uses `tasklist` CSV output, and hook installation waits for `Weixin.dll` to load. The raw key remains device-specific even for the same WeChat account.

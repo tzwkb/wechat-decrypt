@@ -116,7 +116,7 @@ If the platform's Whisper large-v3 model is already cached, voice transcription 
 
 ## Development
 
-Unit tests use synthetic databases and require no personal WeChat data:
+Unit tests use synthetic databases and require no personal WeChat data. The Windows extractor tests also execute its embedded JavaScript against synthetic memory using Node.js 22 or newer. Install test dependencies with `python3 -m pip install pytest pycryptodome 'mcp[cli]>=1,<2'`:
 
 ```bash
 python3 -m pytest -q
