@@ -284,12 +284,14 @@ secondEntry(ptr(0), block);
         script.on("message", on_message)
         script.load()
         assert completed.wait(10), "Frida did not capture the synthetic key"
-        assert not [message for message in messages if message.get("type") == "error"]
+        assert not [message for message in messages if message.get("type") == "error"], messages
         payloads = [message.get("payload", "") for message in messages]
         assert payloads.count("KEY:" + KEY.hex()) == 1
         assert sum(str(payload).startswith("sha512 entry @") for payload in payloads) == 2
     finally:
-        if session:
-            session.detach()
-        child.terminate()
-        child.wait(timeout=5)
+        try:
+            if session:
+                session.detach()
+        finally:
+            child.terminate()
+            child.wait(timeout=5)

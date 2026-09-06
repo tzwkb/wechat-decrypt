@@ -48,7 +48,10 @@ function findEntry(lea, rangeBase) {
     if (a.compare(rangeBase) <= 0) break;
     try {
       if (a.sub(1).readU8() === 0xCC) return a;
-    } catch (e) { break; }
+    } catch (e) {
+      send("WARN: entry inspection failed near " + lea + ": " + e.message);
+      break;
+    }
   }
   return null;
 }
@@ -70,10 +73,12 @@ function installHooks(m) {
   // Mask REX.R and ModRM.reg to cover all 16 RIP-relative LEA encodings in one pass.
   var leas = scanRanges(m, "r-x", "48 8d 05 00 00 00 00 : fb ff c7 00 00 00 00");
   var entries = Object.create(null);
+  var matchingXrefs = 0;
   leas.forEach(function(hit) {
     try {
       var target = hit.address.add(7).add(hit.address.add(3).readS32());
       if (!tables[target.toString()]) return;
+      matchingXrefs++;
       var entry = findEntry(hit.address, hit.range.base);
       if (entry) entries[entry.toString()] = entry;
       else send("WARN: entry not found for xref @ " + hit.address);
@@ -81,6 +86,7 @@ function installHooks(m) {
       send("WARN: xref skipped @ " + hit.address + ": " + e.message);
     }
   });
+  send("SHA-512 K-table xrefs found: " + matchingXrefs);
   if (!Object.keys(entries).length) throw new Error("SHA512 entries not found from K-table xrefs");
 
   var attached = 0;

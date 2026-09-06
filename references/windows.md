@@ -14,6 +14,8 @@ Setup creates `.venv`, installs dependencies, safely creates a junction at `$HOM
 
 Ordinary setup omits the sizeable voice stack. Install it only for transcription with `powershell -File setup.ps1 -WithVoice`; this does not download the model.
 
+Windows dependencies are defined in `requirements-windows.txt`. Python 3.10 uses Frida 17.2.17 because Frida 17.17.0 imports `typing.NotRequired`, which is unavailable in Python 3.10. Python 3.11+ uses the current Frida 17.x line.
+
 If the user-skill path already points to another checkout, ordinary setup stops. Inspect it, then explicitly switch with `powershell -File setup.ps1 -Upgrade`; setup retains the old path as a timestamped backup and links an existing `decrypted\` directory instead of copying it. A failed private-state migration restores the prior junction.
 
 ```powershell
