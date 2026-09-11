@@ -30,7 +30,8 @@ $Python = Join-Path $VenvDir "Scripts\python.exe"
 & $Python -m pip install --upgrade pip
 
 Write-Host "[2/5] 安装 Python 依赖..."
-& $Python -m pip install "mcp[cli]>=1.0,<2" frida pycryptodome zstandard
+& $Python -m pip install -r (Join-Path $SkillDir "requirements-windows.txt")
+if ($LASTEXITCODE -ne 0) { throw "Windows 依赖安装失败" }
 if ($WithVoice) {
     & $Python -m pip install pilk faster-whisper
 } else {

@@ -116,7 +116,7 @@ MCP 暴露相同核心能力：
 
 ## 开发
 
-单元测试使用合成数据库，不读取个人微信数据：
+单元测试使用合成数据库，不读取个人微信数据。Windows 提取器测试还会用 Node.js 22 或更新版本，在合成内存上执行内嵌 JavaScript。测试依赖安装命令：`python3 -m pip install pytest pycryptodome 'mcp[cli]>=1,<2'`。
 
 ```bash
 python3 -m pytest -q

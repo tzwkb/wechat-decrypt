@@ -1,0 +1,5 @@
+mcp[cli]>=1.0,<2
+frida==17.2.17; python_version < "3.11"
+frida>=17,<18; python_version >= "3.11"
+pycryptodome
+zstandard
