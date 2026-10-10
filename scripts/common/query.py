@@ -434,7 +434,7 @@ def _fmt_msg(row: dict) -> dict:
         "direction": "[我]" if is_me else "[对方]",
         "type": message.MSG_TYPES.get(type_key, "其他"),
         "event": None,
-        "content": content[:500].replace("\n", " ") if is_text else "",
+        "content": content if is_text else "",
         "is_text": is_text,
         "is_system": False,
     }
