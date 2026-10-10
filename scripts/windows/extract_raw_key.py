@@ -223,6 +223,14 @@ def capture_key(device, pid, page1, seconds):
     return capture.raw_key
 
 
+def find_message_dbs():
+    root = os.environ.get('WECHAT_DATA_ROOT')
+    if root:
+        root = os.path.expandvars(os.path.expanduser(root))
+        return glob.glob(os.path.join(root, '*', 'db_storage', 'message', 'message_0.db'))
+    return glob.glob(r"C:\Users\*\Documents\xwechat_files\*\db_storage\message\message_0.db")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("seconds", nargs="?", type=int, default=90)
@@ -239,7 +247,7 @@ def main(argv=None):
         import frida
         from Crypto.Cipher import AES  # Check dependencies before closing WeChat.
 
-        dbs = glob.glob(r"C:\Users\*\Documents\xwechat_files\*\db_storage\message\message_0.db")
+        dbs = find_message_dbs()
         if not dbs:
             raise FileNotFoundError("message_0.db not found")
         with open(dbs[0], "rb") as source:

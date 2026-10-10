@@ -62,6 +62,14 @@ def decrypt_db(raw: bytes, src: str, dst: str) -> bool:
     return True
 
 
+def find_storage_roots():
+    root = os.environ.get('WECHAT_DATA_ROOT')
+    if root:
+        root = os.path.expandvars(os.path.expanduser(root))
+        return glob.glob(os.path.join(root, '*', 'db_storage'))
+    return glob.glob(os.path.expanduser(r"~/Documents/xwechat_files/*/db_storage"))
+
+
 def main():
     if len(sys.argv) > 1:
         raw_hex = sys.argv[1].strip()
@@ -79,9 +87,9 @@ def main():
     if len(raw) != 32 or len(raw_hex) != 64:
         raise SystemExit("ERR: raw key must be exactly 64 hexadecimal characters")
 
-    src_roots = glob.glob(os.path.expanduser(r"~/Documents/xwechat_files/*/db_storage"))
+    src_roots = find_storage_roots()
     if not src_roots:
-        print("ERR: no encrypted db_storage under ~/Documents/xwechat_files/*/"); sys.exit(1)
+        print("ERR: no encrypted db_storage found; set WECHAT_DATA_ROOT to the xwechat_files directory if moved"); sys.exit(1)
     src_root = max(src_roots, key=os.path.getmtime)
     account = os.path.basename(os.path.dirname(src_root))  # {wxid}_{device}
     dst_root = os.path.join(DECRYPTED_DIR, account, "db_storage")
