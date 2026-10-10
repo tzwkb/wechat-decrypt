@@ -219,8 +219,8 @@ def main():
     if not matched:
         print(f"未找到匹配 '{args.contact}' 的联系人", file=sys.stderr)
         sys.exit(1)
-    if len(matched) > 5:
-        print(f"匹配太多 ({len(matched)} 个)，请更精确:", file=sys.stderr)
+    if len(matched) > 1:
+        print(f"匹配不唯一 ({len(matched)} 个)，请使用具体 wxid 选择:", file=sys.stderr)
         for _, wxid, display in matched[:10]:
             print(f"  {display} (wxid: {wxid})", file=sys.stderr)
         sys.exit(1)
