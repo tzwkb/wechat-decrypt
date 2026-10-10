@@ -12,6 +12,7 @@ import sys, os, glob, hashlib, tempfile
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "common"))
 from crypto_backend import aes_cbc_decrypt as _aes_cbc_dec
+from wal_snapshot import read_snapshot
 
 SKILL_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DECRYPTED_DIR = os.path.join(SKILL_DIR, "decrypted")
@@ -20,8 +21,10 @@ PAGE, RESERVE, SALT_SZ = 4096, 80, 16
 
 def decrypt_db(raw: bytes, src: str, dst: str) -> bool:
     """Decrypt one SQLCipher v4 db to plaintext sqlite. Returns False if key/format mismatch."""
-    with open(src, "rb") as f:
-        data = f.read()
+    try:
+        data = read_snapshot(src)
+    except ValueError:
+        return False
     if len(data) < PAGE or len(data) % PAGE:
         return False
     salt = data[:SALT_SZ]
