@@ -23,9 +23,9 @@ mcp = FastMCP(
 
 
 @mcp.tool()
-def wechat_list_chats() -> str:
-    """列出所有微信聊天对话(昵称/备注/wxid)。"""
-    return query._human("list", query.list_chats())
+def wechat_list_chats(limit: int = 100, offset: int = 0) -> str:
+    """分页列出微信对话(昵称/备注/wxid)，默认100条。用返回的下一页offset继续。"""
+    return query._human("list-page", query.list_chat_page(limit, offset))
 
 
 @mcp.tool()
