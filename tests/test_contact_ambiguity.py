@@ -59,13 +59,13 @@ def test_export_requires_selection_before_fetch_or_file_write(win_backend, tmp_p
 
     _same_named_contacts(win_backend, count)
     output = tmp_path / 'existing.txt'
-    output.write_text('leave this file unchanged')
+    output.write_text('leave this file unchanged', encoding='utf-8')
     monkeypatch.setattr(sys, 'argv', ['export_chat.py', 'Synthetic Alex', '--no-transcribe', '-o', str(output)])
     monkeypatch.setattr(export_chat, 'fetch', lambda *_: pytest.fail('Ambiguous exports must not fetch messages'))
     with pytest.raises(SystemExit) as exc:
         export_chat.main()
     assert exc.value.code == 1
-    assert output.read_text() == 'leave this file unchanged'
+    assert output.read_text(encoding='utf-8') == 'leave this file unchanged'
     assert 'wxid_peer1' in capsys.readouterr().err
 
 
@@ -95,4 +95,4 @@ def test_export_exact_identifier_still_works(win_backend, tmp_path, monkeypatch,
     monkeypatch.setattr(sys, 'argv', ['export_chat.py', SAMPLE_WXID, '--start', '2025-01-01',
                                      '--no-transcribe', '-o', str(output)])
     export_chat.main()
-    assert 'hello' in output.read_text()
+    assert 'hello' in output.read_text(encoding='utf-8')
