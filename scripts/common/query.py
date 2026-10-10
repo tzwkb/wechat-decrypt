@@ -43,6 +43,16 @@ def _chunks(values: list[str], size: int = 200):
 
 def _iter_query_pages(db_path: str, selects: list[str], page_size: int = 500):
     union = " UNION ALL ".join(selects)
+    if config.DB_BACKEND == 'sqlite3':
+        # One sort/scan, with bounded Python batches, instead of repeating the
+        # entire UNION and discarding an increasing OFFSET for each page.
+        yield from db.iter_query(
+            db_path,
+            'SELECT * FROM (' + union + ') '
+            'ORDER BY create_time DESC, source_table ASC, local_id DESC, server_id DESC;',
+            batch_size=page_size,
+        )
+        return
     offset = 0
     while True:
         rows = db.query(
