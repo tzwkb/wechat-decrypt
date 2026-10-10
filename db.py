@@ -37,6 +37,28 @@ def _exec_sqlite3(db_path: str, sql: str) -> list[sqlite3.Row]:
         con.close()
 
 
+def iter_query(db_path: str, sql: str, batch_size: int = 500):
+    """Stream SQLite rows from one read-only cursor; always close on early exit."""
+    if type(batch_size) is not int or batch_size < 1:
+        raise ValueError('batch_size must be a positive integer')
+    if config.DB_BACKEND != 'sqlite3':
+        raise ValueError('iter_query requires the sqlite3 backend')
+    uri = Path(db_path).resolve().as_uri() + '?mode=ro'
+    con = sqlite3.connect(uri, uri=True)
+    con.row_factory = sqlite3.Row
+    try:
+        con.execute('PRAGMA query_only = ON;')
+        cursor = con.execute(sql)
+        while True:
+            rows = cursor.fetchmany(batch_size)
+            if not rows:
+                return
+            for row in rows:
+                yield dict(row)
+    finally:
+        con.close()
+
+
 def _run_sqlcipher(db_path: str, sql: str, timeout: int) -> str:
     result = subprocess.run(
         [config.SQLCIPHER_PATH, "-readonly", db_path],
