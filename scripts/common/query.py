@@ -343,7 +343,7 @@ def stats(days: int = 30) -> dict:
 
 def media(out: str = "") -> dict:
     import export_media
-    base = os.path.dirname(db.find_data_dir())
+    base = db.get_account_files_dir()
     out = out or os.path.expanduser("~/Desktop/wechat_media")
     return {"out": out, **export_media.export(base, out)}
 
@@ -351,7 +351,7 @@ def media(out: str = "") -> dict:
 def openfile(name: str, limit: int = 8000) -> dict:
     import glob as _g
     import read_doc
-    base = os.path.dirname(db.find_data_dir())
+    base = db.get_account_files_dir()
     matches = [m for m in _g.glob(os.path.join(base, "msg", "file", "**", f"*{name}*"), recursive=True) if os.path.isfile(m)]
     if not matches:
         return {"error": f"未在 msg/file 找到含 '{name}' 的文档"}

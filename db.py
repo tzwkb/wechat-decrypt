@@ -13,6 +13,19 @@ import config
 import crypto
 
 
+def get_account_files_dir() -> str:
+    """Locate attachments in the original account, rather than a DB-only mirror."""
+    storage = find_data_dir()
+    if config.DB_BACKEND != 'sqlite3':
+        return os.path.dirname(storage)
+    account = os.path.basename(os.path.dirname(storage))
+    matches = [os.path.dirname(path) for path in glob.glob(config.WECHAT_DATA_GLOB)
+               if os.path.basename(os.path.dirname(path)) == account]
+    if len(matches) != 1:
+        raise FileNotFoundError('Original attachment directory could not be uniquely located for the selected account')
+    return matches[0]
+
+
 def _set_csv_field_size_limit() -> int:
     limit = sys.maxsize
     while True:
