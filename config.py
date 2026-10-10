@@ -30,5 +30,8 @@ elif IS_WINDOWS:
     WECHAT_DATA_GLOB = os.path.expanduser(
         "~/Documents/xwechat_files/*/db_storage"
     )
+    if os.environ.get('WECHAT_DATA_ROOT'):
+        root = os.path.expandvars(os.path.expanduser(os.environ['WECHAT_DATA_ROOT']))
+        WECHAT_DATA_GLOB = os.path.join(root, '*', 'db_storage')
 else:
     raise RuntimeError(f"Unsupported platform: {platform.system()}")
