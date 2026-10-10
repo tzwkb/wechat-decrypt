@@ -14,6 +14,16 @@ def _clear_contact_cache():
     contacts.invalidate_cache()
 
 
+@pytest.fixture
+def export_cli(monkeypatch):
+    import export_chat
+
+    # These fixtures contain no compressed messages. Exercise contact selection
+    # independently of the optional zstd decoder's availability on CI hosts.
+    monkeypatch.setattr(export_chat.message, 'has_zstd_decoder', lambda: True)
+    return export_chat
+
+
 def _same_named_contacts(root, count):
     import contacts
     import db
@@ -44,8 +54,8 @@ def test_read_requires_selection_before_message_reads(win_backend, monkeypatch, 
 
 
 @pytest.mark.parametrize('count', [2, 5, 6])
-def test_export_requires_selection_before_fetch_or_file_write(win_backend, tmp_path, monkeypatch, capsys, count):
-    import export_chat
+def test_export_requires_selection_before_fetch_or_file_write(win_backend, tmp_path, monkeypatch, capsys, count, export_cli):
+    export_chat = export_cli
 
     _same_named_contacts(win_backend, count)
     output = tmp_path / 'existing.txt'
@@ -71,8 +81,8 @@ def test_read_exact_identifier_selects_one_of_the_candidates(win_backend):
     assert query.read_chat('does-not-exist')['candidates'] == []
 
 
-def test_export_exact_identifier_still_works(win_backend, tmp_path, monkeypatch):
-    import export_chat
+def test_export_exact_identifier_still_works(win_backend, tmp_path, monkeypatch, export_cli):
+    export_chat = export_cli
     from conftest import SAMPLE_WXID
 
     _same_named_contacts(win_backend, 2)
