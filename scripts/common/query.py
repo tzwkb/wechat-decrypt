@@ -91,8 +91,10 @@ def read_chat(contact: str, limit: int = 50, days: int = 7) -> dict:
             rows = db.query(
                 db_path,
                 f"SELECT create_time, local_type, real_sender_id, "
-                f"hex(message_content) AS message_hex "
-                f"FROM {table} WHERE create_time > {since} ORDER BY create_time DESC LIMIT {limit};")
+                f"hex(message_content) AS message_hex, n.user_name AS sender_wxid "
+                f"FROM {_quoted_identifier(table)} m "
+                f"LEFT JOIN Name2Id n ON n.rowid = m.real_sender_id "
+                f"WHERE create_time > {since} ORDER BY create_time DESC LIMIT {limit};")
             msgs.extend(_fmt_msg(row) for row in rows)
         newest = sorted(msgs, key=lambda x: x["_ts"], reverse=True)[:limit]
         out.append({"wxid": wxid, "display": display,
@@ -133,8 +135,9 @@ def search(keyword: str, days: int = 30, limit: int = 50) -> dict:
                 selects.append(
                     f"SELECT '{source}' AS source_table, local_id, server_id, "
                     f"create_time, local_type, "
-                    f"real_sender_id, hex(message_content) AS message_hex "
-                    f"FROM {_quoted_identifier(table)} WHERE create_time > {since} "
+                    f"real_sender_id, hex(message_content) AS message_hex, n.user_name AS sender_wxid "
+                    f"FROM {_quoted_identifier(table)} m "
+                    f"LEFT JOIN Name2Id n ON n.rowid = m.real_sender_id WHERE create_time > {since} "
                     f"AND create_time <= {scan_until} "
                     f"AND (message_content LIKE '%{kw}%' "
                     f"OR instr(hex(message_content), '{kw_hex}') > 0)"
@@ -142,8 +145,9 @@ def search(keyword: str, days: int = 30, limit: int = 50) -> dict:
                 fallback_selects.append(
                     f"SELECT '{source}' AS source_table, local_id, server_id, "
                     f"create_time, local_type, "
-                    f"real_sender_id, hex(message_content) AS message_hex "
-                    f"FROM {_quoted_identifier(table)} WHERE create_time > {since} "
+                    f"real_sender_id, hex(message_content) AS message_hex, n.user_name AS sender_wxid "
+                    f"FROM {_quoted_identifier(table)} m "
+                    f"LEFT JOIN Name2Id n ON n.rowid = m.real_sender_id WHERE create_time > {since} "
                     f"AND create_time <= {scan_until} "
                     "AND (((CAST(local_type AS INTEGER) & 65535) = 49) "
                     "OR hex(substr(message_content, 1, 4)) = '28B52FFD')"
@@ -178,7 +182,9 @@ def recent(days: int = 3, limit: int = 100) -> dict:
             rows = db.query(
                 db_path,
                 f"SELECT create_time, local_type, real_sender_id, "
-                f"hex(message_content) AS message_hex FROM {table} "
+                f"hex(message_content) AS message_hex, n.user_name AS sender_wxid "
+                f"FROM {_quoted_identifier(table)} m "
+                f"LEFT JOIN Name2Id n ON n.rowid = m.real_sender_id "
                 f"WHERE create_time > {since} ORDER BY create_time DESC LIMIT {limit};")
             if not rows:
                 continue
@@ -210,7 +216,9 @@ def summary(days: int = 3) -> dict:
             rows = db.query(
                 db_path,
                 f"SELECT create_time, local_type, real_sender_id, "
-                f"hex(message_content) AS message_hex FROM {table} "
+                f"hex(message_content) AS message_hex, n.user_name AS sender_wxid "
+                f"FROM {_quoted_identifier(table)} m "
+                f"LEFT JOIN Name2Id n ON n.rowid = m.real_sender_id "
                 f"WHERE create_time > {since} "
                 f"AND ((CAST(local_type AS INTEGER) & 65535) IN (1, 49, 10000, 10002)) "
                 f"ORDER BY create_time DESC LIMIT 30;")
@@ -412,7 +420,9 @@ def _fmt_msg(row: dict) -> dict:
             "is_text": bool(system["text"]),
             "is_system": True,
         }
-    is_me = message.is_my_message(row.get("real_sender_id", ""))
+    # Name2Id row IDs are local to a shard; only wxids are portable.
+    sender = row.get("sender_wxid")
+    direction = "[未知]" if not sender else "[我]" if sender == db.get_my_wxid() else "[对方]"
     if type_key == "49":
         app = appmsg.parse_app_message(content, row.get("local_type", ""))
         details = app["summary"].replace("\n", " ")[:500]
@@ -420,7 +430,7 @@ def _fmt_msg(row: dict) -> dict:
         return {
             "time": message.format_time(ts),
             "_ts": ts_int,
-            "direction": "[我]" if is_me else "[对方]",
+            "direction": direction,
             "type": app["label"],
             "event": None,
             "content": display,
@@ -431,7 +441,7 @@ def _fmt_msg(row: dict) -> dict:
     is_text = type_key == "1" and not content.startswith("<")
     return {
         "time": message.format_time(ts), "_ts": ts_int,
-        "direction": "[我]" if is_me else "[对方]",
+        "direction": direction,
         "type": message.MSG_TYPES.get(type_key, "其他"),
         "event": None,
         "content": content[:500].replace("\n", " ") if is_text else "",
