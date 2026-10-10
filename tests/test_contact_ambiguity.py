@@ -83,11 +83,16 @@ def test_read_exact_identifier_selects_one_of_the_candidates(win_backend):
 
 def test_export_exact_identifier_still_works(win_backend, tmp_path, monkeypatch, export_cli):
     export_chat = export_cli
-    from conftest import SAMPLE_WXID
+    import db
+    from conftest import SAMPLE_TABLE, SAMPLE_WXID
 
     _same_named_contacts(win_backend, 2)
+    with sqlite3.connect(os.path.join(db.find_data_dir(), 'message', 'message_0.db')) as con:
+        # Use modern synthetic timestamps: naive epoch-boundary timestamps are
+        # outside the supported range of Windows' local-time conversion.
+        con.execute(f'UPDATE {SAMPLE_TABLE} SET create_time=1767225600+local_id')
     output = tmp_path / 'selected.txt'
-    monkeypatch.setattr(sys, 'argv', ['export_chat.py', SAMPLE_WXID, '--start', '1970-01-01',
+    monkeypatch.setattr(sys, 'argv', ['export_chat.py', SAMPLE_WXID, '--start', '2025-01-01',
                                      '--no-transcribe', '-o', str(output)])
     export_chat.main()
-    assert output.exists()
+    assert 'hello' in output.read_text()
