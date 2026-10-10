@@ -9,6 +9,7 @@ Pure pycryptodome (the VM has no `cryptography`). Usage: python decrypt_all.py [
 (raw key defaults to ../../key_windows.txt).
 """
 import sys, os, glob, hashlib, tempfile
+import hmac, struct
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "common"))
 from crypto_backend import aes_cbc_decrypt as _aes_cbc_dec
@@ -26,6 +27,14 @@ def decrypt_db(raw: bytes, src: str, dst: str) -> bool:
         return False
     salt = data[:SALT_SZ]
     enc = hashlib.pbkdf2_hmac("sha512", raw, salt, 256000, 32)
+    mac_salt = bytes(value ^ 0x3A for value in salt)
+    mac_key = hashlib.pbkdf2_hmac('sha512', enc, mac_salt, 2, 32)
+    for number in range(1, len(data) // PAGE + 1):
+        page = data[(number - 1) * PAGE:number * PAGE]
+        offset = SALT_SZ if number == 1 else 0
+        expected = hmac.new(mac_key, page[offset:PAGE - 64] + struct.pack('<I', number), hashlib.sha512).digest()
+        if not hmac.compare_digest(expected, page[PAGE - 64:PAGE]):
+            return False
     rstart = PAGE - RESERVE
     # verify page 1 header before committing
     iv0 = data[rstart:rstart + 16]
