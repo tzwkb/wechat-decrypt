@@ -79,8 +79,8 @@ def read_chat(contact: str, limit: int = 50, days: int = 7) -> dict:
     matched = contacts.find_contact(contact, name2id)
     if not matched:
         return {"error": f"未找到匹配 '{contact}' 的联系人", "candidates": []}
-    if len(matched) > 5:
-        return {"error": f"匹配 '{contact}' 的联系人太多({len(matched)})",
+    if len(matched) > 1:
+        return {"error": f"匹配 '{contact}' 的联系人不唯一({len(matched)})，请使用具体 wxid 选择",
                 "candidates": [{"wxid": w, "display": d} for _t, w, d in matched[:10]]}
     out = []
     for table, wxid, display in matched:
