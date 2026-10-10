@@ -10,6 +10,14 @@ import shutil
 import sys
 
 
+def _copy_relative(path, source_root, destination_root, suffix=""):
+    # Basenames repeat across dates and attachment directories. Keep the source
+    # hierarchy so each file has a stable destination without overwriting peers.
+    destination = os.path.join(destination_root, os.path.relpath(path, source_root) + suffix)
+    os.makedirs(os.path.dirname(destination), exist_ok=True)
+    shutil.copy2(path, destination)
+
+
 def export(base, out):
     os.makedirs(out, exist_ok=True)
     c = {"docs": 0, "videos": 0, "images": 0, "enc_dat": 0}
@@ -22,7 +30,7 @@ def export(base, out):
         for root, _, files in os.walk(src):
             for f in files:
                 try:
-                    shutil.copy2(os.path.join(root, f), os.path.join(d, f))
+                    _copy_relative(os.path.join(root, f), src, d)
                     c[key] += 1
                 except OSError:
                     pass
@@ -45,7 +53,7 @@ def export(base, out):
                 else:
                     continue
                 try:
-                    shutil.copy2(p, os.path.join(d, f + ext))
+                    _copy_relative(p, cache, d, ext)
                     c["images"] += 1
                 except OSError:
                     pass
