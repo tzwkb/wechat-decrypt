@@ -73,7 +73,15 @@ def list_chats() -> list[dict]:
             for _table, wxid in sorted(name2id.items(), key=lambda x: x[1])]
 
 
+def _validate_window(days: int, limit: int | None = None):
+    if type(days) is not int or days < 1:
+        raise ValueError('days must be a positive integer')
+    if limit is not None and (type(limit) is not int or not 1 <= limit <= 2000):
+        raise ValueError('limit must be an integer between 1 and 2000')
+
+
 def read_chat(contact: str, limit: int = 50, days: int = 7) -> dict:
+    _validate_window(days, limit)
     name2id = db.get_name2id()
     since = int(time.time()) - days * 86400
     matched = contacts.find_contact(contact, name2id)
@@ -101,6 +109,7 @@ def read_chat(contact: str, limit: int = 50, days: int = 7) -> dict:
 
 
 def search(keyword: str, days: int = 30, limit: int = 50) -> dict:
+    _validate_window(days, limit)
     name2id = db.get_name2id()
     scan_until = int(time.time())
     since = scan_until - days * 86400
@@ -170,6 +179,7 @@ def search(keyword: str, days: int = 30, limit: int = 50) -> dict:
 
 
 def recent(days: int = 3, limit: int = 100) -> dict:
+    _validate_window(days, limit)
     name2id = db.get_name2id()
     since = int(time.time()) - days * 86400
     messages = []
@@ -202,6 +212,7 @@ def recent(days: int = 3, limit: int = 100) -> dict:
 
 
 def summary(days: int = 3) -> dict:
+    _validate_window(days)
     name2id = db.get_name2id()
     since = int(time.time()) - days * 86400
     by_contact: dict[str, dict] = {}
@@ -230,6 +241,7 @@ def summary(days: int = 3) -> dict:
 
 
 def system_events(event: str = "", days: int = 30, limit: int = 100) -> dict:
+    _validate_window(days, limit)
     from collections import Counter
 
     name2id = db.get_name2id()
@@ -288,6 +300,7 @@ def system_events(event: str = "", days: int = 30, limit: int = 100) -> dict:
 
 
 def stats(days: int = 30) -> dict:
+    _validate_window(days)
     from collections import Counter
     name2id = db.get_name2id()
     since = int(time.time()) - days * 86400
